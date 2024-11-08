@@ -9,5 +9,6 @@ package-lock.json
 .vs/
 dist
 temp
+repo/*
 etc
 build-complete.meta
