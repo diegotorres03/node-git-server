@@ -10,19 +10,19 @@ const port =
 // const repos = new Git(join(__dirname, '../repo'), {
 const repos = new Git('./path-to-repo', {
   autoCreate: true,
-  authenticate: ({ type, user }, next) =>{
-    console.log('----')
-    console.log('on auth', type, user)
-    console.log('----')
-    return  type == 'push'
-      ? user(([username, password]) => {
-        console.log('username', username)
-        console.log('password', password.lenght)
-          // aca puedo poner restricciones al accesso
-          next();
-        })
-      : next()
-    }
+  // authenticate: ({ type, user }, next) =>{
+  //   console.log('----')
+  //   console.log('on auth', type, user)
+  //   console.log('----')
+  //   return  type == 'push'
+  //     ? user(([username, password]) => {
+  //       console.log('username', username)
+  //       console.log('password', password.lenght)
+  //         // aca puedo poner restricciones al accesso
+  //         next();
+  //       })
+  //     : next()
+  //   }
 });
 
 repos.on('push', (push) => {
