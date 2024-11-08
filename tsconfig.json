@@ -5,7 +5,7 @@
     "lib": ["esnext"],
     "target": "es2020",
     "module": "commonjs",
-    "outDir": "dist",
+    "outDir": "../code-bucket-beta-infra/functions/git/dist",
     "rootDir": "src",
     "strict": true,
     "noImplicitAny": true,

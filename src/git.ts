@@ -38,12 +38,12 @@ export interface GitAuthenticateOptions {
   type: string;
   repo: string;
   user: (() => Promise<[string | undefined, string | undefined]>) &
-    ((
-      callback: (
-        username?: string | undefined,
-        password?: string | undefined
-      ) => void
-    ) => void);
+  ((
+    callback: (
+      username?: string | undefined,
+      password?: string | undefined
+    ) => void
+  ) => void);
   headers: http.IncomingHttpHeaders;
 }
 
@@ -149,9 +149,9 @@ export class Git extends EventEmitter implements GitEvents {
 
   authenticate:
     | ((
-        options: GitAuthenticateOptions,
-        callback: (error?: Error) => void | undefined
-      ) => void | Promise<Error | undefined | void> | undefined)
+      options: GitAuthenticateOptions,
+      callback: (error?: Error) => void | undefined
+    ) => void | Promise<Error | undefined | void> | undefined)
     | undefined;
 
   autoCreate: boolean;
@@ -316,20 +316,38 @@ export class Git extends EventEmitter implements GitEvents {
    * @param  http response object
    */
   handle(req: http.IncomingMessage, res: http.ServerResponse) {
+
+    console.log('req', req.method, req.url);
+    console.log(req.headers);
+    // console.log(Object.keys(req));
+
+    // // Add this code to read and print the request body
+    // let body = '';
+    // req.on('data', (chunk) => {
+    //   body += chunk.toString();
+    // });
+
+    // req.on('end', () => {
+    //   console.log('Request body:', body);
+    // });
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
 
     const handlers = [
+      // for info-refs
       (req: http.IncomingMessage, res: http.ServerResponse) => {
         if (req.method !== 'GET') return false;
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const u = url.parse(req?.url || '');
-        const m = u.pathname?.match(/\/(.+)\/info\/refs$/);
-        if (!m) return false;
-        if (/\.\./.test(m[1])) return false;
+        const match = u.pathname?.match(/\/(.+)\/info\/refs$/);
+        if (!match) return false;
+        if (/\.\./.test(match[1])) return false;
 
-        const repo = m[1];
+        console.log('INFO_REFS');
+
+        const repo = match[1];
         const params = qs.parse(u?.query || '');
         if (!params.service || typeof params.service !== 'string') {
           res.statusCode = 400;
@@ -345,7 +363,7 @@ export class Git extends EventEmitter implements GitEvents {
           return;
         }
 
-        const repoName = parseGitName(m[1]);
+        const repoName = parseGitName(match[1]);
         const next = (error?: Error | void) => {
           if (error) {
             res.setHeader('Content-Type', 'text/plain');
@@ -371,8 +389,8 @@ export class Git extends EventEmitter implements GitEvents {
             callback
               ? basicAuth(req, res, callback)
               : new Promise<[string | undefined, string | undefined]>(
-                  (resolve) => basicAuth(req, res, (u, p) => resolve([u, p]))
-                );
+                (resolve) => basicAuth(req, res, (u, p) => resolve([u, p]))
+              );
 
           const promise = this.authenticate(
             {
@@ -520,16 +538,28 @@ export class Git extends EventEmitter implements GitEvents {
       options = { type: 'http' };
     }
 
-    const createServer =
-      options.type == 'http'
-        ? http.createServer
-        : https.createServer.bind(this, options);
+    // const createServer =
+    //   options.type == 'http'
+    //     ? http.createServer
+    //     : https.createServer.bind(this, options);
 
-    this.server = createServer((req, res) => {
-      this.handle(req, res);
-    });
+    // this.server = createServer((req, res) => {
+    //   this.handle(req, res);
+    // });
 
-    this.server.listen(port, callback);
+    this.server = http.createServer((req, res) => {
+      this.handle(req, res)
+    })
+
+    console.log('aca deberia iniciarse', this.server.listen, port)
+
+    this.server.listen(port, () => {
+      console.log('listening')
+
+      callback && callback()
+    })
+
+    console.log(this.server.listening)
 
     return this;
   }
