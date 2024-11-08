@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+  <!-- Components -->
+  <script type="module" src="https://dwck.dev-archy.com/lib/simple-card/simple-card.js"></script>
+  <script type="module" src="https://dwck.dev-archy.com/lib/kanban-board/kanban-board.js"></script>
+  <script type="module" src="https://dwck.dev-archy.com/lib/app-router/app-router.js"></script>
+  <script type="module" src="https://dwck.dev-archy.com/lib/app-modal/app-modal.js"></script>
+  <!-- Icons -->
+  <link href="https://dev.iconly.io/public/qpoCO0JFYAmS/iconly.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://dwck.dev-archy.com/lib/css/index.css">
+  <link rel="stylesheet" href="https://dwck.dev-archy.com/lib/css/themes/default-theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.css" />
+
+
+
+  <title>WebSocket Client</title>
+  <style>
+    #messageLog {
+      height: 300px;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <input type="text" name="git-path" id="git-path">
+  <button id="change-path-btn">change path</button>
+
+  <kanban-board id="tasks">
+
+    <kanban-column id="todo">
+      <simple-card data-name="fix/bug">fix a bug</simple-card>
+      <simple-card data-name="feat/thing">new thing feature</simple-card>
+    </kanban-column>
+    <kanban-column id="doing"></kanban-column>
+    <kanban-column id="done"></kanban-column>
+    <kanban-column id="publish"></kanban-column>
+
+  </kanban-board>
+
+  <hr>
+  <h1>WebSocket Client</h1>
+  <div id="messageLog"></div>
+  <input type="text" id="messageInput" placeholder="Type a message...">
+  <button onclick="sendMessage()">Send</button>
+
+
+
+  <script>
+
+    const socket = new WebSocket('ws://localhost:8000');
+    const messageLog = document.getElementById('messageLog');
+    const path = document.querySelector('#git-path')
+    const pathbtn = document.querySelector('#change-path-btn')
+    // const messageInput = document.getElementById('messageInput');
+
+    const todo = document.querySelector('#todo')
+    const doing = document.querySelector('#doing')
+    const done = document.querySelector('#done')
+
+
+    pathbtn.addEventListener('click', event => {
+      console.log()
+      const pathInput = path.value
+      console.log(event)
+      console.log(event.target.value)
+      sendMessage({ action: 'set-local-path', path: pathInput })
+    })
+
+    socket.onopen = (event) => {
+      addMessageToLog('Connected to WebSocket server');
+      // sendMessage({ action: 'set-local-path', path: path.value })
+
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        let json = JSON.parse(event.data)
+        console.log(json.type, json.detail.name)
+        if (json.type === 'branch-detected') {
+          console.log('change path')
+          const card = document.querySelector(`[data-name="${json.detail.name}"]`)
+          console.log(card)
+          doing.appendChild(card)
+        }
+      } catch (err) {
+        addMessageToLog(`Server: ${event.data}`);
+      }
+    };
+
+    socket.onclose = (event) => {
+      addMessageToLog('Disconnected from WebSocket server');
+    };
+
+    socket.onerror = (error) => {
+      addMessageToLog(`Error: ${error.message}`);
+    };
+
+    function sendMessage(message) {
+      // const message = messageInput.value;
+      if (message) {
+        socket.send(JSON.stringify(message));
+        addMessageToLog(`You: ${message}`);
+        messageInput.value = '';
+      }
+    }
+
+    function addMessageToLog(message) {
+      const messageElement = document.createElement('div');
+      messageElement.textContent = message;
+      messageLog.appendChild(messageElement);
+      messageLog.scrollTop = messageLog.scrollHeight;
+    }
+
+    // Allow sending messages with Enter key
+    // messageInput.addEventListener('keypress', (event) => {
+    //   if (event.key === 'Enter') {
+    //     sendMessage();
+    //   }
+    // });
+  </script>
+
+
+  <script id="kanban-events">
+    const tasks = document.querySelector('#tasks')
+    tasks.addEventListener('todo', event => {
+      sendMessage({
+        column: 'todo',
+        detail: { ...event.detail, ...event.target.dataset }
+      })
+    })
+    tasks.addEventListener('doing', event => {
+      sendMessage({
+        column: 'doing',
+        detail: { ...event.detail, ...event.target.dataset }
+      })
+    })
+    tasks.addEventListener('done', event => {
+      sendMessage({
+        column: 'done',
+        detail: { ...event.detail, ...event.target.dataset }
+      })
+    })
+  </script>
+</body>
+
+</html>

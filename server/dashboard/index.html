@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+  <h1>hi</h1>
+
+  <input type="text" id="repo-name">
+  <button id="create-repo-btn">create</button>
+
+
+  <script>
+    const input = document.querySelector('#repo-name')
+    const btn = document.querySelector('#create-repo-btn')
+
+
+    btn.addEventListener('click',async  event => {
+      // alert(input.value)
+
+      // const remoteUrl
+      // fetch('http://18.118.168.9:8080/crete-repo', {
+      fetch(`http://localhost:8080/crete-repo?name=${encodeURIComponent(input.value)}`, {
+        method: 'post',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          name: input.value,
+          defaultBranch: 'main'
+        })
+      })
+      .then(res => res.json())
+      .then(res => console.log(res))
+      .catch(err => console.error(err) )
+
+
+    })
+
+
+
+
+
+
+  </script>
+
+</body>
+</html>
