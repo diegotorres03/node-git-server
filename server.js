@@ -1,4 +1,4 @@
-const { Git } = require("./dist");
+const { Git } = require('./dist');
 
 // const { join } = require("path");
 const port =
@@ -7,29 +7,29 @@ const port =
     : parseInt(process.env.PORT);
 
 // const repos = new Git(join(__dirname, '../repo'), {
-const repos = new Git("./repo", {
+const repos = new Git('./repo', {
   autoCreate: true,
 });
 
-repos.on("push", (push) => {
+repos.on('push', (push) => {
   console.log(`push ${push.repo}/${push.commit} ( ${push.branch} )`);
   push.accept();
 });
 
-repos.on("pull", (pull) => {
+repos.on('pull', (pull) => {
   console.log(`pull ${pull.repo}/${pull.commit} ( ${pull.branch} )`);
   pull.accept();
 });
 
-repos.on("fetch", (fetch) => {
+repos.on('fetch', (fetch) => {
   console.log(`fetch ${fetch.commit}`);
   fetch.accept();
 });
 
-repos.listen(port, () => {
+repos.listen(port, {}, () => {
   console.log(`node-git-server running at http://localhost:${port}`);
 });
 
-console.log(repos.listen, port)
+console.log(repos.listen, port);
 
 // repos.handle({ test: true });
