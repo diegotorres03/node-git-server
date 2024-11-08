@@ -11,15 +11,15 @@ async function routeMessage(message) {
   const jsonMessage = JSON.parse(message);
   console.log(jsonMessage.column);
 
-  if(jsonMessage.action === 'set-local-path' && jsonMessage.path) {
+  if (jsonMessage.action === 'set-local-path' && jsonMessage.path) {
     try {
       const newGit = sg.simpleGit({
         baseDir: jsonMessage.path,
       });
-      console.log(`changing git path to ${jsonMessage.path}`)
-      git = newGit
+      console.log(`changing git path to ${jsonMessage.path}`);
+      git = newGit;
     } catch (error) {
-      console.error(err)
+      console.error(err);
     }
   }
 
@@ -31,9 +31,15 @@ async function routeMessage(message) {
 
   if (jsonMessage.column === 'doing') {
     // pull, then new branch, then checkpoint tag
-    await git.add('.');
-    await git.commit(jsonMessage.detail.name);
-    await git.pull();
+    try {
+      await git.add('.');
+      await git
+        .commit(jsonMessage.detail.name)
+        .catch((err) => console.log('soy yo'));
+      await git.pull();
+    } catch (err) {
+      console.error(err);
+    }
 
     await git.checkout(jsonMessage.detail.name).catch((err) => {
       console.log('ERR:', err.message);
@@ -51,9 +57,8 @@ async function routeMessage(message) {
     await git.checkout('master');
     await git.merge([jsonMessage.detail.name]);
     await git.branch(['-D', jsonMessage.detail.name]);
-    await git.push('origin', 'master')
+    await git.push('origin', 'master');
   }
-
 }
 
 // Event listener for when a client connects
@@ -63,7 +68,12 @@ wss.on('connection', (ws) => {
   git.branch().then((branchInfo) => {
     // ws.send({ branchInfo });
     console.log('branchInfo', branchInfo);
-    ws.send(JSON.stringify({type: 'branch-detected', detail: {name: branchInfo.current}}))
+    ws.send(
+      JSON.stringify({
+        type: 'branch-detected',
+        detail: { name: branchInfo.current },
+      })
+    );
   });
 
   // Event listener for messages from the client

@@ -16,6 +16,8 @@ const repos = new Git('./path-to-repo', {
     console.log('----')
     return  type == 'push'
       ? user(([username, password]) => {
+        console.log('username', username)
+        console.log('password', password.lenght)
           // aca puedo poner restricciones al accesso
           next();
         })
