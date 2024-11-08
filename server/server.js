@@ -1,4 +1,4 @@
-const { Git } = require('./dist');
+const { Git } = require('../dist');
 
 // const { join } = require("path");
 const port =
