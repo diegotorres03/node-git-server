@@ -23,7 +23,7 @@
 
       // const remoteUrl
       // fetch('http://18.118.168.9:8080/crete-repo', {
-      fetch(`http://localhost:8080/crete-repo?name=${encodeURIComponent(input.value)}`, {
+      fetch(`http://localhost:8080/repositories?name=${encodeURIComponent(input.value)}`, {
         method: 'post',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({

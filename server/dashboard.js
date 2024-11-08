@@ -15,8 +15,11 @@ app.use(express.json());
 // Serve static files from the assets directory
 app.use(express.static(path.join(__dirname, ASSETS_DIR)));
 
+
+app.get('/repositories')
+
 // POST endpoint to create a folder and run a command
-app.post('/crete-repo', (req, res) => {
+app.post('/repositories', (req, res) => {
   const { name, defaultBranch } = req.query;
   console.log(req.query);
 
